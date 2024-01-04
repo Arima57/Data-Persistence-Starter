@@ -1,16 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MainManager : MonoBehaviour
 {
+    string saveFilePath;
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text Highscore;
     public GameObject GameOverText;
     
     private bool m_Started = false;
@@ -22,6 +25,13 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        saveFilePath = Application.persistentDataPath + "/playerdata.json";
+        if (File.Exists(saveFilePath))
+        {
+            string loadPlayerData = File.ReadAllText(saveFilePath);
+            JsonUtility.FromJsonOverwrite(loadPlayerData, Singleton.instance);
+        }
+        Highscore.text = $"Highscore : {Singleton.instance.highscore}";
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -65,6 +75,12 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
+        if (m_Points > Singleton.instance.highscore){
+            Singleton.instance.highscore = m_Points;
+            Highscore.text = $"Highscore : {m_Points}";
+            string savePlayerData = JsonUtility.ToJson(Singleton.instance);
+            File.WriteAllText(saveFilePath, savePlayerData);
+        }
         ScoreText.text = $"Score : {m_Points}";
     }
 
